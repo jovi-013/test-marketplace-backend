@@ -53,3 +53,4 @@ watchfiles==1.1.0
 websockets==15.0.1
 gunicorn
 asyncpg
+psycopg2
