@@ -10,6 +10,13 @@ class ProductSimple(BaseModel):
     class Config:
         from_attributes = True
 
+class UserSimple(BaseModel):
+    id: int
+    email: EmailStr
+
+    class Config:
+        from_attributes = True
+
 # Base Schemas
 class ProductBase(BaseModel):
     name: str
@@ -59,6 +66,7 @@ class SellerProduct(SellerProductBase):
     seller_id: int
     product_id: int
     product: ProductSimple
+    seller: UserSimple
 
     class Config:
         from_attributes = True

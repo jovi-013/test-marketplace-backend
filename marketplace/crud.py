@@ -13,20 +13,26 @@ async def get_user_by_email(db: AsyncSession, email: str):
     query = (
         select(models.User)
         .options(
+            # Load selling_products AND the nested Product and Seller on each one
             selectinload(models.User.selling_products).options(
-                selectinload(models.SellerProduct.product)
+                selectinload(models.SellerProduct.product),
+                selectinload(models.SellerProduct.seller) # Load the seller info
             ),
+            # Load purchase_orders AND all nested details
             selectinload(models.User.purchase_orders).options(
                 selectinload(models.Order.items).options(
                     selectinload(models.OrderItem.product_item).options(
-                        selectinload(models.SellerProduct.product)
+                        selectinload(models.SellerProduct.product),
+                        selectinload(models.SellerProduct.seller) # Also load the seller here
                     )
                 )
             ),
+            # Load sale_orders AND all nested details
             selectinload(models.User.sale_orders).options(
                 selectinload(models.Order.items).options(
                     selectinload(models.OrderItem.product_item).options(
-                        selectinload(models.SellerProduct.product)
+                        selectinload(models.SellerProduct.product),
+                        selectinload(models.SellerProduct.seller) # And also here
                     )
                 )
             )
@@ -78,7 +84,13 @@ async def create_product(db: AsyncSession, product: schemas.ProductCreate):
     return result.scalars().first()
 
 async def get_products(db: AsyncSession, skip: int = 0, limit: int = 100):
-    query = select(models.Product).options(selectinload(models.Product.sellers)).offset(skip).limit(limit)
+    query = (
+        select(models.Product)
+        .options(selectinload(models.Product.sellers).options(selectinload(models.SellerProduct.seller)))
+        .offset(skip)
+        .limit(limit)
+        .order_by(models.Product.id)
+    )
     result = await db.execute(query)
     return result.scalars().all()
 
@@ -127,7 +139,7 @@ async def get_seller_inventory(db: AsyncSession, seller_id: int):
 async def get_product(db: AsyncSession, product_id: int):
     query = (
         select(models.Product)
-        .options(selectinload(models.Product.sellers))
+        .options(selectinload(models.Product.sellers).options(selectinload(models.SellerProduct.seller)))
         .filter(models.Product.id == product_id)
     )
     result = await db.execute(query)
