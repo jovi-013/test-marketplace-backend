@@ -15,7 +15,7 @@ async def on_startup():
 
 origins = [
     "http://localhost:5173",
-    "https://test-marketplace-frontend.vercel.app/",
+    "https://test-marketplace-frontend.vercel.app",
 ]
 
 app.add_middleware(
