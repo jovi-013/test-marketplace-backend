@@ -14,8 +14,8 @@ class Settings(BaseSettings):
 settings = Settings()
 
 if settings.DATABASE_URL.startswith("postgresql://"):
-    settings.DATABASE_URL = settings.DATABASE_URL.replace("postgres://", "postgresql+asyncpg://", 1)
-    
+    settings.DATABASE_URL = settings.DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
+
 engine = create_async_engine(settings.DATABASE_URL, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine, class_=AsyncSession)
 Base = declarative_base()
