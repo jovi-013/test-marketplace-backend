@@ -2,7 +2,7 @@
 
 A RESTful API for a simple e-commerce marketplace application, allowing users to register as buyers or sellers, manage products, and handle orders. This project is to fulfill the requirements of a recruitment process.
 
-**Live API URL:** `https://test-marketplace-backend-production.up.railway.app/`
+**Live API URL:** https://test-marketplace-backend-production.up.railway.app/
 
 ---
 
