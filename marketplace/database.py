@@ -21,9 +21,7 @@ if database_url.startswith("sqlite"):
 elif database_url.startswith("postgresql://"):
     database_url = database_url.replace("postgresql://", "postgresql+asyncpg://", 1)
 
-print(f"---------------- TEST DEBUG {database_url} ------------------------------")
-
-engine = create_async_engine(settings.DATABASE_URL, connect_args=connect_args)
+engine = create_async_engine(database_url, connect_args=connect_args)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine, class_=AsyncSession)
 Base = declarative_base()
 
