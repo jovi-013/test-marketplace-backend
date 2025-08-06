@@ -10,7 +10,29 @@ def get_password_hash(password):
     return pwd_context.hash(password)
 
 async def get_user_by_email(db: AsyncSession, email: str):
-    query = select(models.User).options(selectinload(models.User.selling_products)).filter(models.User.email == email)
+    query = (
+        select(models.User)
+        .options(
+            selectinload(models.User.selling_products).options(
+                selectinload(models.SellerProduct.product)
+            ),
+            selectinload(models.User.purchase_orders).options(
+                selectinload(models.Order.items).options(
+                    selectinload(models.OrderItem.product_item).options(
+                        selectinload(models.SellerProduct.product)
+                    )
+                )
+            ),
+            selectinload(models.User.sale_orders).options(
+                selectinload(models.Order.items).options(
+                    selectinload(models.OrderItem.product_item).options(
+                        selectinload(models.SellerProduct.product)
+                    )
+                )
+            )
+        )
+        .filter(models.User.email == email)
+    )
     result = await db.execute(query)
     return result.scalars().first()
 

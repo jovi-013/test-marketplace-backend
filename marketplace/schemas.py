@@ -1,34 +1,64 @@
 from pydantic import BaseModel, EmailStr
 from typing import List
 
-class Token(BaseModel):
-    access_token: str
-    token_type: str
-
-# SellerProduct
-class SellerProductBase(BaseModel):
-    price: float
-    quantity: int
-
-class SellerProductCreate(SellerProductBase):
-    product_id: int
-
-class SellerProduct(SellerProductBase):
+# Simple Schemas for Nesting, to prevent circular loops
+class ProductSimple(BaseModel):
     id: int
-    seller_id: int
-    product_id: int
-
+    name: str
+    description: str | None = None
+    
     class Config:
         from_attributes = True
 
-# Products
+# Base Schemas
 class ProductBase(BaseModel):
     name: str
     description: str | None = None
     image_url: str | None = None
 
+class SellerProductBase(BaseModel):
+    price: float
+    quantity: int
+
+class UserBase(BaseModel):
+    email: EmailStr
+
+class OrderItemBase(BaseModel):
+    seller_product_id: int
+    quantity: int
+
+# Schemas for creating or input
 class ProductCreate(ProductBase):
     pass
+
+class SellerProductCreate(SellerProductBase):
+    product_id: int
+
+class UserCreate(UserBase):
+    password: str
+    user_type: str
+
+class OrderItemCreate(OrderItemBase):
+    pass
+
+class OrderCreate(BaseModel):
+    seller_id: int
+    items: List[OrderItemCreate]
+
+# Schemas for reading or output
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class SellerProduct(SellerProductBase):
+    id: int
+    seller_id: int
+    product_id: int
+    product: ProductSimple
+
+    class Config:
+        from_attributes = True
 
 class Product(ProductBase):
     id: int
@@ -37,45 +67,13 @@ class Product(ProductBase):
     class Config:
         from_attributes = True
 
-# Users
-class UserBase(BaseModel):
-    email: EmailStr
-
-class UserCreate(UserBase):
-    password: str
-    user_type: str
-
-class User(UserBase):
-    id: int
-    is_active: bool
-    user_type: str
-    selling_products: List[SellerProduct] = []
-
-    class Config:
-        from_attributes = True
-
-# OrderItem
-class OrderItemBase(BaseModel):
-    seller_product_id: int
-    quantity: int
-
-class OrderItemCreate(OrderItemBase):
-    pass
-
 class OrderItem(OrderItemBase):
     id: int
     price_at_purchase: float
+    product_item: SellerProduct
 
     class Config:
         from_attributes = True
-
-# Order
-class OrderBase(BaseModel):
-    seller_id: int
-    items: List[OrderItemCreate]
-
-class OrderCreate(OrderBase):
-    pass
 
 class Order(BaseModel):
     id: int
@@ -84,6 +82,17 @@ class Order(BaseModel):
     total_price: float
     status: str
     items: List[OrderItem]
+
+    class Config:
+        from_attributes = True
+
+class User(UserBase):
+    id: int
+    is_active: bool
+    user_type: str
+    selling_products: List[SellerProduct] = []
+    purchase_orders: List[Order] = []
+    sale_orders: List[Order] = []
 
     class Config:
         from_attributes = True
