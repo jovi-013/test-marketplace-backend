@@ -149,7 +149,7 @@ async def get_product(db: AsyncSession, product_id: int):
 async def create_order(db: AsyncSession, order_data: schemas.OrderCreate, buyer_id: int):
     total_price = 0
     items_to_process = []
-
+    
     for item_data in order_data.items:
         seller_product = await db.get(models.SellerProduct, item_data.seller_product_id)
 
@@ -162,17 +162,18 @@ async def create_order(db: AsyncSession, order_data: schemas.OrderCreate, buyer_
         total_price += seller_product.price * item_data.quantity
         items_to_process.append((seller_product, item_data.quantity))
 
+    # Create the Order object
     new_order = models.Order(
         buyer_id=buyer_id,
         seller_id=order_data.seller_id,
         total_price=total_price
     )
     db.add(new_order)
-    
     await db.flush()
 
     order_id_for_query = new_order.id
 
+    # Create the OrderItem objects and update inventory
     for product, quantity_ordered in items_to_process:
         order_item = models.OrderItem(
             order_id=new_order.id,
@@ -187,13 +188,18 @@ async def create_order(db: AsyncSession, order_data: schemas.OrderCreate, buyer_
 
     query = (
         select(models.Order)
-        .options(selectinload(models.Order.items).options(selectinload(models.OrderItem.product_item).options(selectinload(models.SellerProduct.product))))
+        .options(
+            selectinload(models.Order.items).options(
+                selectinload(models.OrderItem.product_item).options(
+                    selectinload(models.SellerProduct.product),
+                    selectinload(models.SellerProduct.seller)
+                )
+            )
+        )
         .filter(models.Order.id == order_id_for_query)
     )
     result = await db.execute(query)
-    final_order = result.scalars().first()
-    
-    return final_order
+    return result.scalars().first()
 
 async def update_order_status(db: AsyncSession, order_id: int, seller_id: int, new_status: str):
     order = await db.get(models.Order, order_id)
