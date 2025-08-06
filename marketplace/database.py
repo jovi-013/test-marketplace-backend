@@ -13,6 +13,9 @@ class Settings(BaseSettings):
 
 settings = Settings()
 
+database_url = settings.DATABASE_URL
+connect_args = {}
+
 if database_url.startswith("sqlite"):
     connect_args = {"check_same_thread": False}
 elif database_url.startswith("postgresql://"):
