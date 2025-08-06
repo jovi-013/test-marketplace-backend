@@ -49,9 +49,20 @@ async def create_user(db: AsyncSession, user: schemas.UserCreate):
 
     query = (
         select(models.User)
-        .options(selectinload(models.User.selling_products))
+        .options(
+            selectinload(models.User.selling_products).options(
+                selectinload(models.SellerProduct.product)
+            ),
+            selectinload(models.User.purchase_orders).options(
+                selectinload(models.Order.items)
+            ),
+            selectinload(models.User.sale_orders).options(
+                selectinload(models.Order.items)
+            )
+        )
         .filter(models.User.id == db_user.id)
     )
+    
     result = await db.execute(query)
     return result.scalars().first()
 
