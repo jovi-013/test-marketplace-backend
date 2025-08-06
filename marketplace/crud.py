@@ -62,7 +62,7 @@ async def create_user(db: AsyncSession, user: schemas.UserCreate):
         )
         .filter(models.User.id == db_user.id)
     )
-    
+
     result = await db.execute(query)
     return result.scalars().first()
 
@@ -182,6 +182,17 @@ async def create_order(db: AsyncSession, order_data: schemas.OrderCreate, buyer_
     final_order = result.scalars().first()
     
     return final_order
+
+async def update_order_status(db: AsyncSession, order_id: int, seller_id: int, new_status: str):
+    order = await db.get(models.Order, order_id)
+
+    if not order or order.seller_id != seller_id:
+        raise HTTPException(status_code=404, detail="Order not found")
+
+    order.status = new_status
+    await db.commit()
+    await db.refresh(order)
+    return order
 
 async def get_orders_for_seller(db: AsyncSession, seller_id: int):
     query = (

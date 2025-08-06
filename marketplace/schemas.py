@@ -45,6 +45,9 @@ class OrderCreate(BaseModel):
     seller_id: int
     items: List[OrderItemCreate]
 
+class OrderUpdate(BaseModel):
+    status: str
+
 # Schemas for reading or output
 
 class Token(BaseModel):
