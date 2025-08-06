@@ -199,6 +199,7 @@ async def get_orders_for_seller(db: AsyncSession, seller_id: int):
         select(models.Order)
         .options(selectinload(models.Order.items))
         .filter(models.Order.seller_id == seller_id)
+        .order_by(models.Order.id.asc())
     )
     result = await db.execute(query)
     return result.scalars().all()
